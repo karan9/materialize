@@ -1,5 +1,5 @@
 /*!
- * Materialize v0.100.2 (http://materializecss.com)
+ * Materialize vundefined (http://materializecss.com)
  * Copyright 2014-2017 Materialize
  * MIT License (https://raw.githubusercontent.com/Dogfalo/materialize/master/LICENSE)
  */
@@ -8874,11 +8874,7 @@ if (Vel) {
       this.canvas = canvas;
     }
 
-    raiseCallback(this.options.init);
-  }
-
-  function raiseCallback(callbackFunction) {
-    if (callbackFunction && typeof callbackFunction === "function") callbackFunction();
+    self.raiseCallback(this.options.init);
   }
 
   // Default options
@@ -8913,13 +8909,74 @@ if (Vel) {
     popover.show();
   };
 
+  /**
+   * raise callback here
+   */
+  ClockPicker.prototype.raiseCallback = function (cb) {
+    if (cb && typeof cb === "function") {
+      cb(this);
+    }
+  };
+
+  // The input can be changed by the user
+  // So before we can use this.hours/this.minutes we must update it
+  // Reference: https://github.com/weareoutman/clockpicker/pull/40/
+  ClockPicker.prototype.parseInputValue = function () {
+    var value = this.input.prop('value') || this.options['default'] || '';
+
+    if (value === 'now') {
+      value = new Date(+new Date() + this.options.fromnow);
+    }
+    if (value instanceof Date) {
+      value = value.getHours() + ':' + value.getMinutes();
+    }
+
+    value = value.split(':');
+
+    /* adjust materialize: am/pm changes */
+    if (this.options.twelvehour && !(typeof value[1] === 'undefined')) {
+      if (value[1].indexOf("AM") > 0) {
+        this.amOrPm = 'AM';
+      } else {
+        this.amOrPm = 'PM';
+      }
+      value[1] = value[1].replace("AM", "").replace("PM", "");
+    }
+
+    // Minutes can have AM/PM that needs to be removed
+    this.hours = +value[0] || 0;
+    this.minutes = +(value[1] + '').replace(/\D/g, '') || 0;
+
+    if (this.options.twelvehour) {
+      var period = (value[1] + '').replace(/\d+/g, '').toLowerCase();
+      this.amOrPm = this.hours < 12 || period === 'am' ? 'AM' : 'PM';
+    }
+  };
+
+  // Allow user to get time time as Date object
+  ClockPicker.prototype.getTime = function (callback) {
+    this.parseInputValue();
+
+    var hours = this.hours;
+    if (this.options.twelvehour && hours < 12 && this.amOrPm === 'PM') {
+      hours += 12;
+    }
+
+    var selectedTime = new Date();
+    selectedTime.setMinutes(this.minutes);
+    selectedTime.setHours(hours);
+    selectedTime.setSeconds(0);
+
+    return callback && callback.apply(this.element, selectedTime) || selectedTime;
+  };
+
   // Show popover
   ClockPicker.prototype.show = function (e) {
     // Not show again
     if (this.isShown) {
       return;
     }
-    raiseCallback(this.options.beforeShow);
+    self.raiseCallback(this.options.beforeShow);
     $(':input').each(function () {
       $(this).attr('tabindex', -1);
     });
@@ -8929,25 +8986,10 @@ if (Vel) {
     this.popover.addClass('picker--opened');
     this.input.addClass('picker__input picker__input--active');
     $(document.body).css('overflow', 'hidden');
-    // Get the time
-    var value = ((this.input.prop('value') || this.options['default'] || '') + '').split(':');
-    if (this.options.twelvehour && !(typeof value[1] === 'undefined')) {
-      if (value[1].indexOf("AM") > 0) {
-        this.amOrPm = 'AM';
-      } else {
-        this.amOrPm = 'PM';
-      }
-      value[1] = value[1].replace("AM", "").replace("PM", "");
-    }
-    if (value[0] === 'now') {
-      var now = new Date(+new Date() + this.options.fromnow);
-      value = [now.getHours(), now.getMinutes()];
-      if (this.options.twelvehour) {
-        this.amOrPm = value[0] >= 12 && value[0] < 24 ? 'PM' : 'AM';
-      }
-    }
-    this.hours = +value[0] || 0;
-    this.minutes = +value[1] || 0;
+
+    // Get The Time from input field
+    this.parseInputValue();
+
     this.spanHours.html(this.hours);
     this.spanMinutes.html(leadingZero(this.minutes));
     if (!this.isAppended) {
@@ -8995,11 +9037,11 @@ if (Vel) {
         self.hide();
       }
     });
-    raiseCallback(this.options.afterShow);
+    self.raiseCallback(this.options.afterShow);
   };
   // Hide popover
   ClockPicker.prototype.hide = function () {
-    raiseCallback(this.options.beforeHide);
+    self.raiseCallback(this.options.beforeHide);
     this.input.removeClass('picker__input picker__input--active');
     this.popover.removeClass('picker--opened');
     $(document.body).css('overflow', 'visible');
@@ -9011,13 +9053,13 @@ if (Vel) {
     $doc.off('click.clockpicker.' + this.id + ' focusin.clockpicker.' + this.id);
     $doc.off('keyup.clockpicker.' + this.id);
     this.popover.hide();
-    raiseCallback(this.options.afterHide);
+    self.raiseCallback(this.options.afterHide);
   };
   // Toggle to hours or minutes view
   ClockPicker.prototype.toggleView = function (view, delay) {
     var raiseAfterHourSelect = false;
     if (view === 'minutes' && $(this.hoursView).css("visibility") === "visible") {
-      raiseCallback(this.options.beforeHourSelect);
+      self.raiseCallback(this.options.beforeHourSelect);
       raiseAfterHourSelect = true;
     }
     var isHours = view === 'hours',
@@ -9042,7 +9084,7 @@ if (Vel) {
     }, duration);
 
     if (raiseAfterHourSelect) {
-      raiseCallback(this.options.afterHourSelect);
+      self.raiseCallback(this.options.afterHourSelect);
     }
   };
 
@@ -9153,7 +9195,7 @@ if (Vel) {
 
   // Hours and minutes are selected
   ClockPicker.prototype.done = function () {
-    raiseCallback(this.options.beforeDone);
+    self.raiseCallback(this.options.beforeDone);
     this.hide();
     this.label.addClass('active');
 
@@ -9173,7 +9215,7 @@ if (Vel) {
 
     if (this.options.autoclose) this.input.trigger('blur');
 
-    raiseCallback(this.options.afterDone);
+    self.raiseCallback(this.options.afterDone);
   };
 
   // Clear input field
@@ -9213,19 +9255,32 @@ if (Vel) {
   // Extends $.fn.clockpicker
   $.fn.pickatime = function (option) {
     var args = Array.prototype.slice.call(arguments, 1);
-    return this.each(function () {
+
+    function handleClockPickerRequest() {
       var $this = $(this),
           data = $this.data('clockpicker');
       if (!data) {
         var options = $.extend({}, ClockPicker.DEFAULTS, $this.data(), typeof option == 'object' && option);
         $this.data('clockpicker', new ClockPicker($this, options));
       } else {
-        // Manual operatsions. show, hide, remove, e.g.
+        // Manual operations. show, hide, remove, getTime, e.g.
         if (typeof data[option] === 'function') {
-          data[option].apply(data, args);
+          return data[option].apply(data, args);
         }
       }
-    });
+    }
+
+    // If we explicitly do a call on a single element then we can return the value (if needed)
+    // This allows us, for example, to return the value of getTime
+    if (this.length == 1) {
+      var returnValue = handleClockPickerRequest.apply(this[0]);
+
+      // If we do not have any return value then return the object itself so you can chain
+      return returnValue !== undefined ? returnValue : this;
+    }
+
+    // If we do have a list then we do not care about return values
+    return this.each(handleClockPickerRequest);
   };
 })(jQuery);
 ;(function ($) {
