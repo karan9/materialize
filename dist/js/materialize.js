@@ -8874,7 +8874,7 @@ if (Vel) {
       this.canvas = canvas;
     }
 
-    self.raiseCallback(this.options.init);
+    this.raiseCallback(this.options.init);
   }
 
   // Default options
@@ -8976,7 +8976,7 @@ if (Vel) {
     if (this.isShown) {
       return;
     }
-    self.raiseCallback(this.options.beforeShow);
+    this.raiseCallback(this.options.beforeShow);
     $(':input').each(function () {
       $(this).attr('tabindex', -1);
     });
@@ -9037,11 +9037,11 @@ if (Vel) {
         self.hide();
       }
     });
-    self.raiseCallback(this.options.afterShow);
+    this.raiseCallback(this.options.afterShow);
   };
   // Hide popover
   ClockPicker.prototype.hide = function () {
-    self.raiseCallback(this.options.beforeHide);
+    this.raiseCallback(this.options.beforeHide);
     this.input.removeClass('picker__input picker__input--active');
     this.popover.removeClass('picker--opened');
     $(document.body).css('overflow', 'visible');
@@ -9053,13 +9053,13 @@ if (Vel) {
     $doc.off('click.clockpicker.' + this.id + ' focusin.clockpicker.' + this.id);
     $doc.off('keyup.clockpicker.' + this.id);
     this.popover.hide();
-    self.raiseCallback(this.options.afterHide);
+    this.raiseCallback(this.options.afterHide);
   };
   // Toggle to hours or minutes view
   ClockPicker.prototype.toggleView = function (view, delay) {
     var raiseAfterHourSelect = false;
     if (view === 'minutes' && $(this.hoursView).css("visibility") === "visible") {
-      self.raiseCallback(this.options.beforeHourSelect);
+      this.raiseCallback(this.options.beforeHourSelect);
       raiseAfterHourSelect = true;
     }
     var isHours = view === 'hours',
@@ -9084,7 +9084,7 @@ if (Vel) {
     }, duration);
 
     if (raiseAfterHourSelect) {
-      self.raiseCallback(this.options.afterHourSelect);
+      this.raiseCallback(this.options.afterHourSelect);
     }
   };
 
@@ -9195,7 +9195,7 @@ if (Vel) {
 
   // Hours and minutes are selected
   ClockPicker.prototype.done = function () {
-    self.raiseCallback(this.options.beforeDone);
+    this.raiseCallback(this.options.beforeDone);
     this.hide();
     this.label.addClass('active');
 
@@ -9215,7 +9215,7 @@ if (Vel) {
 
     if (this.options.autoclose) this.input.trigger('blur');
 
-    self.raiseCallback(this.options.afterDone);
+    this.raiseCallback(this.options.afterDone);
   };
 
   // Clear input field
