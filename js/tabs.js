@@ -201,7 +201,8 @@
             $content.show();
             $content.addClass('active');
             if (typeof(options.onShow) === "function") {
-              options.onShow.call(this, $content);
+              // pass the ref to current activated tab
+              options.onShow.call(this, $active); // $content
             }
           }
 
