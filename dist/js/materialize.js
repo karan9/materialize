@@ -4809,7 +4809,7 @@ if (Vel) {
 
             // Handle onAutocomplete callback.
             if (typeof options.onAutocomplete === "function") {
-              options.onAutocomplete.call(this, text);
+              options.onAutocomplete.call(this, text, $input);
             }
           });
 
